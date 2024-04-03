@@ -13,22 +13,63 @@ import {
   Pressable,
 } from 'native-base';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { isValidPhoneNumber } from 'libphonenumber-js';
+import { auth } from '../firebase.config';
 
 const SignUp = () => {
   const [phoneNo, setPhoneNo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    try {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'sign-in-button', {
+        size: 'invisible',
+        callback: () => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          console.log('Recaptcha resolved');
+        },
+      });
+      setIsError(false);
+    } catch (error) {
+      console.log('Error:', error);
+      window.recaptchaVerifier = null;
+      window.alert('An error occurred. Please try again.');
+      setIsError(true);
+    }
+  }, []);
+
   const handleSubmission = () => {
-    console.log('Phone number:', phoneNo);
-    const userPhoneNo = `+254${phoneNo}`;
-    router.push({
-      pathname: '/verifyphone',
-      params: { phone: userPhoneNo },
-    });
-    //navigation.navigate('verifyphone', { phone: userPhoneNo, signin: 'true' });
+    setIsLoading(true);
+    const gPhonNo = phoneNo.replace(/^0+/, '');
+    const userPhoneNo = `+254${gPhonNo}`;
+
+    if (isValidPhoneNumber(userPhoneNo)) {
+      signInWithPhoneNumber(auth, userPhoneNo, window.recaptchaVerifier)
+        .then((confirmation) => {
+          setIsLoading(false);
+          console.log('Verification ID:', confirmation.verificationId);
+          router.push({
+            pathname: '/verifyphone',
+            params: { phone: userPhoneNo, id: confirmation.verificationId },
+          });
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          setIsError(true);
+          window.alert('An error occurred. Please try again.');
+          console.log('Error:', error);
+        });
+    } else {
+      setIsLoading(false);
+      setIsError(true);
+      window.alert('Please enter a valid phone number.');
+    }
   };
+
   return (
     <Box flex={1} bg="white">
       <Text
@@ -41,6 +82,7 @@ const SignUp = () => {
       >
         Let's get started
       </Text>
+      <div id="sign-in-button"></div>
       <Stack mx={8} my={6}>
         <Text fontSize="md">Enter your phone number to get started.</Text>
         <Input
@@ -60,10 +102,10 @@ const SignUp = () => {
               </HStack>
             </Pressable>
           }
-          placeholder="712345678"
+          placeholder="7XXXXXXXX"
           //size="lg"
           fontSize="xl"
-          keyboardType="numeric"
+          inputMode="numeric"
           autoFocus={true}
           spellCheck={false}
           value={phoneNo}

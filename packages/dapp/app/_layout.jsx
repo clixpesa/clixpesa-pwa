@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { theme } from '../theme';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -83,9 +83,9 @@ function RootLayout() {
           headerBackTitle: '',
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={router.back}>
+            <Pressable onPress={router.back}>
               <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
-            </TouchableOpacity>
+            </Pressable>
           ),
         }}
       />
@@ -96,9 +96,9 @@ function RootLayout() {
           headerBackTitle: '',
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={router.back}>
+            <Pressable onPress={router.back}>
               <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
-            </TouchableOpacity>
+            </Pressable>
           ),
         }}
       />
@@ -109,9 +109,9 @@ function RootLayout() {
           headerBackTitle: '',
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={router.back}>
+            <Pressable onPress={router.back}>
               <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
-            </TouchableOpacity>
+            </Pressable>
           ),
         }}
       />
@@ -122,9 +122,9 @@ function RootLayout() {
           headerBackTitle: '',
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={router.back}>
+            <Pressable onPress={router.back}>
               <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
-            </TouchableOpacity>
+            </Pressable>
           ),
         }}
       />
