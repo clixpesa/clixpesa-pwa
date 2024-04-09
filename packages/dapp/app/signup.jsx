@@ -14,7 +14,7 @@ import {
 } from 'native-base';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { auth } from '../firebase.config';
 
@@ -48,6 +48,11 @@ const SignUp = () => {
     const userPhoneNo = `+254${gPhonNo}`;
 
     if (isValidPhoneNumber(userPhoneNo)) {
+      //check if a user with the phone number exists
+
+      //if exists, redirect to login page
+      //else, send verification code
+
       signInWithPhoneNumber(auth, userPhoneNo, window.recaptchaVerifier)
         .then((confirmation) => {
           setIsLoading(false);
