@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Box, Text, VStack, Button, Spacer, FormControl, Input } from 'native-base';
 import { useRouter } from 'expo-router';
+import { generateWalletFromMnemonic } from '../services/wallet.service';
+import { setTokenState } from '../redux/slices/essential.slice';
+import { useDispatch } from 'react-redux';
 
 const Import = () => {
   const [phrase, setPhrase] = useState(
@@ -9,10 +12,11 @@ const Import = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
   const router = useRouter();
-
-  const handleSubmit = async ({ phrase }) => {
+  const dispatch = useDispatch();
+  const handleSubmit = async () => {
     setIsLoading(true);
-    console.log('Phrase:', phrase);
+    await generateWalletFromMnemonic(phrase);
+    dispatch(setTokenState('import'));
     setTimeout(() => {
       setIsLoading(false);
       router.push('/linkphone');

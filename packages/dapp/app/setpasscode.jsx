@@ -2,15 +2,22 @@ import { Box, VStack, Spinner, Text } from 'native-base';
 import { useEffect, useState } from 'react';
 import { PIN_BLOCKLIST } from '../config';
 import { CodeInput } from '../components';
+import { useSelector, useDispatch } from 'react-redux';
+import { setUserToken } from '../redux/slices/essential.slice';
+import { useRouter } from 'expo-router';
 
 const SetPasscode = () => {
+  const tokenState = useSelector((state) => state.essential.tokenState);
+  const isLoggedIn = useSelector((state) => state.essential.isLoggedIn);
+  const router = useRouter();
+  const dispatch = useDispatch();
   const [code1, setCode1] = useState('');
   const [code2, setCode2] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isCodeReady, setIsCodeReady] = useState(false);
   const [isMismatch, setIsMismatch] = useState(false);
-  const [userToken, setUserToken] = useState('');
+  //const [userToken, setUserToken] = useState('');
   const onFullCode1 = (code) => {
     if (isPinValid(code)) {
       setIsVerifying(true);
@@ -25,15 +32,12 @@ const SetPasscode = () => {
     setIsMismatch(false);
     if (code1 === code) {
       console.log('Pin session is done');
+      console.log('Token STATE:', tokenState);
       setIsLoading(true);
-      //handleOnSucess(code);
       setCode1('');
-      //if (code2) setUserToken(code2);
+      if (code2) dispatch(setUserToken({ code: code2, state: tokenState }));
       setCode2('');
       setIsVerifying(false);
-      if (userToken) {
-        //dispatch(addUserDetailsToken(userToken));
-      }
     } else {
       console.log('Pin does not match');
       setIsMismatch(true);
@@ -49,6 +53,13 @@ const SetPasscode = () => {
       }, 500);
     }
   }, [isCodeReady]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      setIsLoading(false);
+      router.replace('(authenticated)/home');
+    }
+  }, [isLoggedIn]);
   return (
     <Box flex={1} bg="white">
       {isLoading ? (

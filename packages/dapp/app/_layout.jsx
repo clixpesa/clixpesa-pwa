@@ -1,5 +1,6 @@
 //import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { NativeBaseProvider, Icon, Spinner, VStack, Box, Text } from 'native-base';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 //import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -10,6 +11,8 @@ import { theme } from '../theme';
 import { Pressable } from 'react-native';
 import { auth } from '../firebase.config';
 import { onAuthStateChanged } from 'firebase/auth';
+import { store } from '../redux';
+import { setHasAccount, setTokenState } from '../redux/slices/essential.slice';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -26,10 +29,13 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const hasAccount = useSelector((state) => state.essential.hasAccount);
+  const tokenState = useSelector((state) => state.essential.tokenState);
   const [loaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [hasAccount, setHasAccount] = useState(false);
+  //const [hasAccount, setHasAccount] = useState(false);
   const segments = useSegments();
 
   /*const [loaded, error] = useFonts({
@@ -45,12 +51,24 @@ function RootLayout() {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       console.log('User:', user);
+      console.log('Token State:', tokenState);
       //console log user session period
-      if (user) {
+      if (user && tokenState !== 'import') {
         setUser(user);
-        setHasAccount(true);
+        dispatch(setTokenState('login'));
+        dispatch(
+          setHasAccount({
+            state: true,
+            address: user.phoneNumber,
+          }),
+        );
       } else {
-        setHasAccount(false);
+        dispatch(
+          setHasAccount({
+            state: false,
+            address: null,
+          }),
+        );
       }
       setIsLoaded(true);
     });
@@ -61,9 +79,9 @@ function RootLayout() {
     SplashScreen.hideAsync();
     const inAuthGroup = segments[0] === '(authenticated)';
 
-    if (loaded && hasAccount && !inAuthGroup) {
+    if (loaded && hasAccount.state && !inAuthGroup) {
       isSignedIn
-        ? router.replace('/(authenticated)/home')
+        ? router.replace('/(authenticated)/(tabs)/home')
         : router.replace('/(authenticated)/login');
     } else if (!hasAccount && loaded) {
       router.replace('/');
@@ -84,7 +102,6 @@ function RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-
       <Stack.Screen
         name="import"
         options={{
@@ -150,10 +167,52 @@ function RootLayout() {
           ),
         }}
       />
-      <Stack.Screen name="(authenticated)/home" options={{ headerShown: false }} />
+      <Stack.Screen name="(authenticated)/(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="(authenticated)/login"
         options={{ title: '', headerBackTitle: '', headerShadowVisible: false }}
+      />
+      <Stack.Screen
+        name="(authenticated)/edit-profile"
+        options={{ title: '', headerBackTitle: '', headerShadowVisible: false }}
+      />
+      <Stack.Screen
+        name="(authenticated)/deposit"
+        options={{ title: 'Deposit Funds', headerBackTitle: '', headerShadowVisible: false }}
+      />
+      <Stack.Screen
+        name="(authenticated)/from-exchange"
+        options={{ title: 'Deposit Funds', headerBackTitle: '', headerShadowVisible: false }}
+      />
+      <Stack.Screen
+        name="(authenticated)/transfer"
+        options={{ title: 'Transfer Funds', headerBackTitle: '', headerShadowVisible: false }}
+      />
+      <Stack.Screen
+        name="(authenticated)/(spaces)/create-space"
+        options={{
+          title: '',
+          headerBackTitle: '',
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <Pressable onPress={router.back}>
+              <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
+            </Pressable>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="(authenticated)/(spaces)/join-space"
+        options={{
+          title: '',
+          headerBackTitle: '',
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <Pressable onPress={router.back}>
+              <Icon as={Ionicons} name="arrow-back" size="2xl" color="coolGray.800" ml="4" />
+            </Pressable>
+          ),
+        }}
       />
     </Stack>
   );
@@ -161,9 +220,11 @@ function RootLayout() {
 
 export default function RootLayoutNav() {
   return (
-    <NativeBaseProvider theme={theme}>
-      <StatusBar style="light" />
-      <RootLayout />
-    </NativeBaseProvider>
+    <Provider store={store}>
+      <NativeBaseProvider theme={theme}>
+        <StatusBar style="light" />
+        <RootLayout />
+      </NativeBaseProvider>
+    </Provider>
   );
 }

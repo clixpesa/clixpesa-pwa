@@ -17,11 +17,14 @@ import React, { useEffect, useState } from 'react';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { auth } from '../firebase.config';
+import { useDispatch } from 'react-redux';
+import { setTokenState } from '../redux/slices/essential.slice';
 
 const SignUp = () => {
   const [phoneNo, setPhoneNo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  dispatch = useDispatch();
   const router = useRouter();
 
   useEffect(() => {
@@ -57,6 +60,7 @@ const SignUp = () => {
         .then((confirmation) => {
           setIsLoading(false);
           console.log('Verification ID:', confirmation.verificationId);
+          dispatch(setTokenState('create'));
           router.push({
             pathname: '/verifyphone',
             params: { phone: userPhoneNo, id: confirmation.verificationId },

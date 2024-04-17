@@ -2,7 +2,11 @@ import { Box, Text, VStack, Avatar, Spinner } from 'native-base';
 import { View } from 'react-native';
 import { CodeInput } from '../../components';
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { saltyPasscode } from '../../utils';
+import { getUserToken } from '../../services/firestore.service';
+import { setUserToken } from '../../redux/slices/essential.slice';
+import { useRouter } from 'expo-router';
 
 const Login = () => {
   const { names, initials, phone } = {
@@ -10,18 +14,22 @@ const Login = () => {
     initials: 'DK',
     phone: '+254712345678',
   }; //useSelector((s) => s.essential.userDetails);
+  const isLoggedIn = useSelector((s) => s.essential.isLoggedIn);
+  const dispatch = useDispatch();
+  const router = useRouter();
   const firstName = names ? names.split(' ')[0] : '**' + phone.slice(9, 13);
   const [code, setCode] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isCodeReady, setIsCodeReady] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const userToken = '1234567890'; //useSelector((s) => s.essential.userToken);
 
-  const handleFullFill = () => {
+  const handleFullFill = async () => {
+    setLoading(true);
     const token = saltyPasscode(code);
+    const userToken = await getUserToken();
     if (token === userToken) {
       setIsValid(true);
-      setLoading(true);
+      dispatch(setUserToken({ code, state: 'login' }));
     } else {
       console.log('LoggedIn Failed');
       setIsValid(false);
@@ -38,6 +46,13 @@ const Login = () => {
       }, 500);
     }
   }, [isCodeReady]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      setLoading(false);
+      router.replace('/(authenticated)/home');
+    }
+  }, [isLoggedIn]);
   return (
     <Box flex={1} bg="#fff" justifyContent="center">
       <VStack alignItems="center" space={3} mb={5}>

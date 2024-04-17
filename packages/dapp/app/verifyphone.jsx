@@ -4,9 +4,12 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { signInWithCredential, PhoneAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase.config';
+import { useDispatch } from 'react-redux';
+import { setUserUID } from '../redux/slices/essential.slice';
 
 const VerifyPhone = ({ route }) => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { phone, id } = useLocalSearchParams();
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,9 +21,10 @@ const VerifyPhone = ({ route }) => {
     try {
       const credential = new PhoneAuthProvider.credential(id, code);
       const res = await signInWithCredential(auth, credential);
-      console.log('User:', res.user);
+      console.log('User:', res.user.uid);
+      dispatch(setUserUID(res.user.uid));
       setIsLoading(false);
-      //router.replcae('/setpasscode');
+      router.replace('/setpasscode');
     } catch (error) {
       console.log('Error:', error);
       setIsError(true);
